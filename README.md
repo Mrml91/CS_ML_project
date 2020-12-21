@@ -2,4 +2,10 @@
 
 Le dossier `kaggle_data` contient les données du challenge.
 
-branche theo
+### Questions en suspens:
+- prendre en compte le temps écoulé entre la première mesure et l'actuelle
+- normaliser par individu
+- rescaling par méthode robuste ou virer les outliers
+
+### À faire
+Lire l'article 
