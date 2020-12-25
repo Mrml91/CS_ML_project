@@ -7,7 +7,7 @@ Le dossier `kaggle_data` contient les données du challenge.
 - traiter le pulse en fréquentiel
 - essayer de normaliser par individu
 - rescaling par méthode robuste ou virer les outliers (essayé)
-- peut-on essayer de prédire des séquences (de fenêtre à déterminé) plutôt que des mini-blocs de 30 secondes ?
+- peut-on essayer de prédire des fenêtres/séquences (dont la taille sera à déterminer) plutôt que des mini-blocs de 30 secondes ?
 
 
 ### À faire
