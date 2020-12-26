@@ -2,3 +2,4 @@ kaggle_data/*
 exploration_bis.ipynb
 pictures/**
 submissions/*
+.ipynb_checkpoints/*

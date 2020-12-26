@@ -4,6 +4,17 @@ import pandas as pd
 
 # HELPERS
 
+def chunks_iterator(N, size): # with np.array convention 
+    chunk_size = int(np.ceil(size / N))
+    if chunk_size == 0:
+        yield 0, size
+    else:
+        i = 0
+        while i < size:
+            yield i, i + chunk_size
+            i += chunk_size
+    
+
 def print_bis(txt):
     print(txt, end='\x1b[1K\r')
     
@@ -60,7 +71,7 @@ def get_subject_boundaries(h5_file, subject_id, ready_to_use=True):
     return (start, end)
 
 
-def get_subject_feature_signals(h5_file, subject_id, feature, as_timeseries=False):
+def get_subject_feature_signals(h5_file, subject_id, feature, frequencies_dict, as_timeseries=False):
     """
     Get the full timeseries for a given (subject_id, feature) pair.
     
@@ -81,7 +92,7 @@ def get_subject_feature_signals(h5_file, subject_id, feature, as_timeseries=Fals
         return feature_timeseries
     feature_timeseries = np.concatenate(feature_timeseries, axis=0)
     # Build timeline
-    feature_frequency = FREQUENCIES[feature]
+    feature_frequency = frequencies_dict[feature]
     windows = h5_file['index_window'][boundaries]
     timeline = make_full_timeline(windows, feature_frequency)
     return pd.Series(data=feature_timeseries, index=timeline)
