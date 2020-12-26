@@ -23,7 +23,7 @@ def _create_time_features(h5_file, overwrite=False, verbose=True):
     subjects_ids = get_subject_ids(h5_file)
     for sid in subjects_ids:
         start, end = get_subject_boundaries(h5_file, sid, ready_to_use=False)
-        indices = np.arange(start, end, dtype=float)
+        indices = np.arange(start, end+1, dtype=float)[:, None]
         h5_file['sleep_time'][start:end+1] = indices - start
         h5_file['sleep_left'][start:end+1] = end - indices
         h5_file['sleep_time_relative'][start:end+1] = (indices - start) / (end - start)
