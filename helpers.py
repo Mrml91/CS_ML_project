@@ -60,12 +60,11 @@ def get_subject_boundaries(h5_file, subject_id, ready_to_use=True):
                         
     """
     sids = h5_file['index'][:]
+    assert subject_id in sids
+    
     start = np.argmax(sids == subject_id)
     end = len(sids) - 1 - np.argmax(sids[::-1] == subject_id)
     
-    indexers = h5_file['index_absolute'][:]
-    start = indexers[start]
-    end = indexers[end]
     if ready_to_use:
         return slice(start, end + 1) # for numpy arrays
     return (start, end)
