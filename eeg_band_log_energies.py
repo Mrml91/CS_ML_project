@@ -8,8 +8,6 @@ from helpers import *
 BANDS_FRONTIERS = [-1, 4, 8, 13, 22]
 BANDS_LABELS = ['delta', 'theta', 'alpha', 'beta']
 
-
-
 """
 def get_spectrum(seq, fs):
     ft_modulus = np.abs(fft(seq))
@@ -44,23 +42,14 @@ def get_spectrum_energy_chunk(sequences, sampling_freq):
     return energy_by_band
     
     
-def chunks_iterator(N, size): # with np.array convention 
-    chunk_size = int(np.ceil(size / N))
-    if chunk_size == 0:
-        yield 0, size
-    else:
-        i = 0
-        while i < size:
-            yield i, i + chunk_size
-            i += chunk_size
-    
+
     
 
 def _create_log_energy(h5_file, n_chunks=10, overwrite=False, verbose=True):
     if (not overwrite) and ('alpha_eeg_1_logE' in h5_file.keys()):
         return None
     
-    eegs = list(filter(lambda x: x.startswith('eeg'), FEATURES))
+    eegs = [f'eeg_{i}' for i in range(1, 8)]
     shape = (h5_file["eeg_1"].shape[0], 1)
     dtype = h5_file["eeg_1"].dtype
     
@@ -75,7 +64,7 @@ def _create_log_energy(h5_file, n_chunks=10, overwrite=False, verbose=True):
         if verbose:
             print_bis(f"{chunk_num+1}/{n_chunks}")
         for eeg in eegs:
-            energy = get_spectrum_energy_chunk(h5_file[eeg][chunk_start:chunk_end], FREQUENCIES[eeg])
+            energy = get_spectrum_energy_chunk(h5_file[eeg][chunk_start:chunk_end], 50)
             log_energy = np.log(energy)
             for band_name in BANDS_LABELS:
                 h5_file[f"{band_name}_{eeg}_logE"][chunk_start:chunk_end] = log_energy[[band_name]].values

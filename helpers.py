@@ -87,7 +87,7 @@ def get_subject_feature_signals(h5_file, subject_id, feature, as_timeseries=Fals
     return pd.Series(data=feature_timeseries, index=timeline)
 
 
-def get_subject_sleep_stage(subject_id, h5_train):
+def get_subject_sleep_stage(subject_id, h5_train, y_train):
     start, end = get_subject_boundaries(h5_train, subject_id, ready_to_use=False)
     return y_train.loc[start:end] # because loc includes <end> (different behaviour than numpy arrays)
     
