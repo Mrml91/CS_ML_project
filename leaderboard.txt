@@ -2,3 +2,6 @@ path;;;training_score;;;validation_score;;;comments
 models_archives/svm_extreme_no_PCA.joblib;;;0.5046983912215628;;;0.46486652139445167;;;tailing quantiles; no distribution chars; all features; no PCA; seed=101
 models_archives/svm_central.joblib;;;0.6484324442724569;;;0.5259149883494606;;;no quantiles; dist chars with truncation; all features; no PCA; seed=101
 models_archives/svm_central_selected_100.joblib;;;0.7490922598052925;;;0.6146053909473732;;;no quantiles; dist chars with truncation; all features; no PCA; seed=101
+models_archives/svm_extreme_selected_100.joblib;;;0.8699158469095148;;;0.6313060373651097;;;tailing quantiles; no distribution chars; all features; no PCA; seed=101
+models_archives/svm_central_selected_100.joblib;;;0.9357700400316507;;;0.6329119075385012;;;no quantiles; dist chars with truncation; all features; no PCA; seed=101
+models_archives/svm_glouton_selected_100.joblib;;;0.583502674228996;;;0.4971701430167396;;;tail quantiles; dist chars with truncation; all features; no PCA; seed=101
