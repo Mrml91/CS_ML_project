@@ -65,7 +65,7 @@ def _create_log_energy(h5_file, n_chunks=10, overwrite=False, verbose=True):
             print_bis(f"{chunk_num+1}/{n_chunks}")
         for eeg in eegs:
             energy = get_spectrum_energy_chunk(h5_file[eeg][chunk_start:chunk_end], 50)
-            log_energy = np.log(energy)
+            log_energy = np.log(1 + energy)
             for band_name in BANDS_LABELS:
                 h5_file[f"{band_name}_{eeg}_logE"][chunk_start:chunk_end] = log_energy[[band_name]].values
     return None

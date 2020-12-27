@@ -41,8 +41,8 @@ def _create_pulse_max_log_energy_and_freq(h5_file, n_chunks=10, overwrite=False,
             print_bis(f"{chunk_num+1}/{n_chunks}")
         max_energies, argmax_freqs = get_max_energy_and_freq(
             h5_file["pulse"][chunk_start:chunk_end], per_minute=True, sampling_freq=PULSE_FREQ
-            )
-        h5_file["pulse_max_logE"][chunk_start:chunk_end] = np.log(max_energies)[:, None]
+        )
+        h5_file["pulse_max_logE"][chunk_start:chunk_end] = np.log(1 + max_energies)[:, None]
         h5_file["pulse_max_freq"][chunk_start:chunk_end] = argmax_freqs[:, None]
 
         
