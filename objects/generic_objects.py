@@ -152,7 +152,11 @@ class PoolModels:
             #     self.has_converged[i, split_num] = True
             
             k += 1
-        
+    
+    def train_on_all_data(self, model):
+        X_train_shaped = self.input_shaper.fit_transform(self.X_train)
+        model.fit(X_train_shaped,self.y_train_arr)
+        return model
 
     def _plot(self, scores):
         fig, ax = plt.subplots(figsize=(10, 10))
