@@ -81,7 +81,7 @@ def make_input(h5_file, features=FEATURES, quantiles=QUANTILES, dist_char=True, 
     if rescale:
         ids = get_subject_ids(h5_file)
         for id in ids:
-            indices = subjects_ids_to_indexers(h5_file, id, as_indices=True, as_boolean_array=False)
+            indices = subjects_ids_to_indexers(h5_file, [id], as_indices=True, as_boolean_array=False)
             z_scaler = StandardScaler()
             input_arr[indices,:] = z_scaler.fit_transform(input_arr[indices,:])            
     return pd.DataFrame(input_arr, columns=pd.MultiIndex.from_tuples(columns))
