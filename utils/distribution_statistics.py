@@ -43,7 +43,7 @@ def _make_input_multidimensional_feature_chunk(
     diff_sequences = differentiate(sequences, order=order, dropna=True)
     res[:, :len(quantiles)] = get_distribution_quantiles(diff_sequences, quantiles)
     if dist_char:
-        res[:, -4:] = get_distribution_characteristics(diff_sequences, truncate_dist=truncate_dist)
+        res[:, -5:] = get_distribution_characteristics(diff_sequences, truncate_dist=truncate_dist)
     return res
         
 
@@ -54,7 +54,7 @@ def make_input_multidimensional_feature(h5_file,
                                         truncate_dist=False,
                                         n_chunks=100,
                                         order=0):
-    n_cols = len(quantiles) * int(len(quantiles) > 0) + 4 * int(dist_char)
+    n_cols = len(quantiles) * int(len(quantiles) > 0) + 5 * int(dist_char)
     feature_array = np.empty(shape=(h5_file[feature].shape[0], n_cols))
     suffix = f"_diff_{order}" if order > 0 else ""
     columns = [(feature + suffix, str(q)) for q in quantiles] + [(feature, f"Mom_{i}") for i in [1, 2, 3, 4, -1] if dist_char]
