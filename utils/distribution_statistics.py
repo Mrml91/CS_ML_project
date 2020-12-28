@@ -55,7 +55,12 @@ def make_input_multidimensional_feature(h5_file,
     return feature_array, columns
 
 
-def make_input(h5_file, features=FEATURES, quantiles=QUANTILES, dist_char=True, truncate_dist=False):
+### Rescaling
+from sklearn.preprocessing import StandardScaler 
+# already robust on not logE features because we take quantiles
+# --> StandardScaler 
+
+def make_input(h5_file, features=FEATURES, quantiles=QUANTILES, dist_char=True, truncate_dist=False, rescale=True):
     n_mono = sum([feat in MONO_FEATURES for feat in features])
     n_cols_multi = len(quantiles) + 4 * int(dist_char)
     n_cols = n_mono + n_cols_multi * (len(features) - n_mono)
@@ -73,7 +78,12 @@ def make_input(h5_file, features=FEATURES, quantiles=QUANTILES, dist_char=True, 
                 h5_file, feat, quantiles, dist_char, truncate_dist)
             columns = columns + cols
             i += n_cols_multi
+    if rescale:
+        ids = get_subject_ids(h5_file)
+        for id in ids:
+            indices = subjects_ids_to_indexers(h5_file, id, as_indices=True, as_boolean_array=False)
+            z_scaler = StandardScaler()
+            input_arr[indices,:] = z_scaler.fit_transform(input_arr[indices,:])            
     return pd.DataFrame(input_arr, columns=pd.MultiIndex.from_tuples(columns))
-    
 
 
