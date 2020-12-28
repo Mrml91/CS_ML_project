@@ -71,8 +71,8 @@ class InputShaper:
 class PoolModels:
     
     def __init__(self, input_maker, n_splits, train_size, input_shaper, blueprint, parameters_list, 
-                 iterations_to_warm=10,
-                 h5_train=None, h5_test=None, X_train=None, X_test=None, y_train_arr=None, seed=None):
+                 h5_train=None, h5_test=None, X_train=None, X_test=None, y_train_arr=None, seed=None,
+                 warming_params=dict(), convergence_params=dict()):
         # seed only works for the splits and the blueprint
         # should work for input_maker if only numpy operations
         # works for input_shaper
@@ -84,7 +84,9 @@ class PoolModels:
         self.input_shaper.set_seed(self.seed) # works (?)
         self.blueprint = blueprint
         self.parameters_list = parameters_list
-        self.iterations_to_warm = iterations_to_warm
+        # self.iterations_to_warm = iterations_to_warm
+        self.warming_params = warming_params
+        self.convergence_params = convergence_params
 
         self.h5_train = h5_train
         self.h5_test = h5_test
@@ -103,7 +105,7 @@ class PoolModels:
         self.models = np.zeros(shape=(len(self.parameters_list), self.n_splits), dtype='object')
         self.train_scores = np.zeros(shape=(len(self.parameters_list), self.n_splits), dtype=float)
         self.validation_scores = np.zeros(shape=(len(self.parameters_list), self.n_splits), dtype=float)
-        self.has_converged = np.zeros(shape=(len(self.parameters_list), self.n_splits), dtype=bool)
+        # self.has_converged = np.zeros(shape=(len(self.parameters_list), self.n_splits), dtype=bool)
         
     def make_train_input(self):
         if (self.X_train is not None):
@@ -116,7 +118,7 @@ class PoolModels:
         self.X_test = self.input_maker.get_input(self.h5_test, seed=self.seed)
         
         
-    def train_on_split(self, split_num, models_ix=None, max_iter=-1, step_name="TRAINING", score_train=False):
+    def train_on_split(self, split_num, models_ix=None, training_params=dict(), step_name="TRAINING", score_train=False):
         self.make_train_input()
         
         train_selector = subjects_ids_to_indexers(self.h5_train, self.splits[split_num][0], as_boolean_array=True)
@@ -128,7 +130,7 @@ class PoolModels:
         X_train_val = self.input_shaper.transform(X_train_val)
         
         start_time = time.time()
-        total = len(self.parameters_list) if not models_ix else len(models_ix)
+        total = len(self.parameters_list) if models_ix is None else len(models_ix)
         k = 0
         for i, params_set in enumerate(self.parameters_list):
             if (models_ix is not None) and (i not in models_ix):
@@ -136,15 +138,17 @@ class PoolModels:
             # eta
             eta = get_eta_repr(time.time() - start_time, k, total)
             print_bis(f"Split #{split_num+1}/{self.n_splits} - {step_name} Model #{k+1}/{total} [ETA: {eta}]")
-            #
-            model = self.blueprint(max_iter=max_iter, random_state=self.seed, **params_set)
+            
+            params_model = {k: v for k, v in params_set.items()}
+            params_model.update(training_params)
+            model = self.blueprint(random_state=self.seed, **params_model)
             model.fit(X_train_train, y_train_train)
             self.models[i, split_num] = model
             if score_train:
                 self.train_scores[i, split_num] = custom_score(model.predict(X_train_train), y_train_train)
             self.validation_scores[i, split_num] = custom_score(model.predict(X_train_val), y_train_val)
-            if max_iter == -1:
-                self.has_converged[i, split_num] = True
+            # if max_iter == -1:
+            #     self.has_converged[i, split_num] = True
             
             k += 1
         
@@ -161,8 +165,9 @@ class PoolModels:
     def warm_up(self):
         for split_num in range(len(self.splits)):
             self.train_on_split(split_num, models_ix=None,
-                                max_iter=self.iterations_to_warm, step_name='WARM UP',
-                                score_train=False
+                                step_name='WARM UP',
+                                score_train=False,
+                                training_params=self.warming_params
                                )
     
     def select_n_best_models(self, n):
@@ -172,7 +177,7 @@ class PoolModels:
     
     def train_n_best_models_until_convergence(self, n, split_num=0):        
         best_models_ix = self.select_n_best_models(n)
-        self.train_on_split(split_num, models_ix=best_models_ix, max_iter=-1, step_name="TRAINING UNTIL CONVERGENCE", score_train=True)
+        self.train_on_split(split_num, training_params=self.convergence_params, models_ix=best_models_ix, step_name="TRAINING UNTIL CONVERGENCE", score_train=True)
         results = []
         for bm_ix in best_models_ix:
             results.append({"model": self.models[bm_ix, split_num], 
