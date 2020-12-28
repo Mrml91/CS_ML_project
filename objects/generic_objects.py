@@ -3,6 +3,7 @@ import time
 import sys
 sys.path.append("..")
 from helpers import *
+import matplotlib.pyplot as plt
 import seaborn as sns
 
 
@@ -154,7 +155,9 @@ class PoolModels:
         
 
     def _plot(self, scores):
-        sns.heatmap(scores, vmin=0, vmax=1)
+        fig, ax = plt.subplots(figsize=(10, 10))
+        sns.heatmap(scores, vmin=0, vmax=1, annot=True, ax=ax)
+        plt.show()
     
     def plot_validation(self):
         self._plot(self.validation_scores)
