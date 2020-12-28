@@ -24,6 +24,7 @@ def get_distribution_characteristics(arr, truncate_dist=False):
     z_var = ( arr - res[:, [0]] ) / res[:, [1]] 
     res[:, 2] = np.mean(z_var ** 3, axis=1, keepdims=False) # skewness [order 3]
     res[:, 3] = np.mean(z_var ** 4, axis=1, keepdims=False) # kurtosis [order 4]
+    res[:, 4] = np.mean(1 / arr, axis=1, keepdims=False) # harmonical mean [order -1])
     return res
 
 def differentiate(signals, order, dropna=True):
@@ -36,7 +37,7 @@ def differentiate(signals, order, dropna=True):
 def _make_input_multidimensional_feature_chunk(
         sequences, quantiles=QUANTILES, dist_char=True, truncate_dist=False, order=0):
     n_samples = sequences.shape[0]
-    n_cols = len(quantiles) * int(len(quantiles) > 0) + 4 * int(dist_char)
+    n_cols = len(quantiles) * int(len(quantiles) > 0) + 5 * int(dist_char)
     assert n_cols > 0
     res = np.empty(shape=(n_samples, n_cols))
     diff_sequences = differentiate(sequences, order=order, dropna=True)
@@ -56,7 +57,7 @@ def make_input_multidimensional_feature(h5_file,
     n_cols = len(quantiles) * int(len(quantiles) > 0) + 4 * int(dist_char)
     feature_array = np.empty(shape=(h5_file[feature].shape[0], n_cols))
     suffix = f"_diff_{order}" if order > 0 else ""
-    columns = [(feature + suffix, str(q)) for q in quantiles] + [(feature, f"Mom_{i}") for i in range(1,5) if dist_char]
+    columns = [(feature + suffix, str(q)) for q in quantiles] + [(feature, f"Mom_{i}") for i in [1, 2, 3, 4, -1] if dist_char]
     
     for i, j in chunks_iterator(n_chunks, h5_file[feature].shape[0]):
         feature_array[i:j, :] = _make_input_multidimensional_feature_chunk(
@@ -77,8 +78,8 @@ def make_input(h5_file, features=FEATURES, quantiles=QUANTILES,
     n_time = sum([feat in TIME_FEATURES for feat in features])
     n_multi = len(features) - n_time - n_mono
     n_cols_mono = 1
-    n_cols_time = (len(quantiles) + 4 * int(dist_char)) * len(orders)
-    n_cols_multi = len(quantiles) + 4 * int(dist_char)
+    n_cols_time = (len(quantiles) + 5 * int(dist_char)) * len(orders)
+    n_cols_multi = len(quantiles) + 5 * int(dist_char)
     n_cols = n_mono * n_cols_mono + n_time * n_cols_time + n_multi * n_cols_multi
     input_arr = np.empty(shape=(h5_file["index"].shape[0], n_cols))
     i = 0
