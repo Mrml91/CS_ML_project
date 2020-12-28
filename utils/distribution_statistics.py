@@ -18,7 +18,7 @@ def get_distribution_characteristics(arr, truncate_dist=False):
         inf = get_distribution_quantiles(arr, [0.005], keepdims=False)
         sup = get_distribution_quantiles(arr, [0.995], keepdims=False)
         return get_distribution_characteristics(np.clip(arr, inf, sup), truncate_dist=False)
-    res = np.empty(shape=(arr.shape[0], 4))
+    res = np.empty(shape=(arr.shape[0], 5))
     res[:, 0] = np.mean(arr, axis=1, keepdims=False) # mean [order 1]
     res[:, 1] = np.mean((arr - res[:, [0]]) ** 2, axis=1, keepdims=False) # variance [order 2]
     z_var = ( arr - res[:, [0]] ) / res[:, [1]] 
