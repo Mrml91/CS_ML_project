@@ -121,7 +121,7 @@ class PoolModels:
         
     def train_on_split(self, split_num, models_ix=None, training_params=dict(), step_name="TRAINING", score_train=False):
         self.make_train_input()
-        
+
         train_selector = subjects_ids_to_indexers(self.h5_train, self.splits[split_num][0], as_boolean_array=True)
         val_selector = ~train_selector
         
@@ -129,7 +129,7 @@ class PoolModels:
         X_train_train, X_train_val = self.X_train[train_selector], self.X_train[val_selector]
         X_train_train = self.input_shaper.fit_transform(X_train_train)
         X_train_val = self.input_shaper.transform(X_train_val)
-        
+
         start_time = time.time()
         total = len(self.parameters_list) if models_ix is None else len(models_ix)
         k = 0
@@ -142,7 +142,10 @@ class PoolModels:
             
             params_model = {k: v for k, v in params_set.items()}
             params_model.update(training_params)
-            model = self.blueprint(random_state=self.seed, **params_model)
+            try:
+                model = self.blueprint(random_state=self.seed, **params_model)
+            except TypeError:
+                model = self.blueprint(**params_model)
             model.fit(X_train_train, y_train_train)
             self.models[i, split_num] = model
             if score_train:
@@ -170,7 +173,7 @@ class PoolModels:
         self._plot(self.train_scores)
 
     def warm_up(self):
-        for split_num in range(len(self.splits)):
+        for split_num in range(self.n_splits):
             self.train_on_split(split_num, models_ix=None,
                                 step_name='WARM UP',
                                 score_train=False,
