@@ -46,7 +46,7 @@ def make_input_multidimensional_feature(h5_file,
                                         n_chunks=100):
     n_cols = len(quantiles) * int(len(quantiles) > 0) + 4 * int(dist_char)
     feature_array = np.empty(shape=(h5_file[feature].shape[0], n_cols))
-    columns = [(feature, str(q)) for q in quantiles] + [(feature, mom) for mom in range(1,5) if dist_char]
+    columns = [(feature, str(q)) for q in quantiles] + [(feature, f"Mom_{i}") for i in range(1,5) if dist_char]
     
     for i, j in chunks_iterator(n_chunks, h5_file[feature].shape[0]):
         feature_array[i:j, :] = _make_input_multidimensional_feature_chunk(
