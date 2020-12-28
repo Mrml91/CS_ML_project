@@ -1,6 +1,7 @@
 import h5py
 import numpy as np
 import pandas as pd
+from sklearn.metrics import fbeta_score
 
 # HELPERS
 
@@ -102,3 +103,29 @@ def get_subject_sleep_stage(subject_id, h5_train, y_train):
     return y_train.loc[start:end] # because loc includes <end> (different behaviour than numpy arrays)
     
 
+def subjects_ids_to_indexers(h5_file, subjects_ids, as_indices=False, as_boolean_array=False):
+    if as_indices == as_boolean_array:
+        raise NameError('Choose between `indices` and `boolean array` representations')
+    if as_indices:
+        boundaries = [get_subject_boundaries(h5_file, sid, ready_to_use=False) for sid in subjects_ids]
+        return sum(map(lambda bounds: list(range(bounds[0], bounds[1]+1)), boundaries), list())
+    if as_boolean_array:
+        boolean_indexer = np.zeros(shape=(h5_file[list(h5_file.keys())[0]].shape[0],), dtype=bool)
+        for sid in subjects_ids:
+            boolean_indexer[get_subject_boundaries(h5_file, sid, ready_to_use=True)] = True
+        return boolean_indexer
+        
+def get_eta_repr(elapsed, iteration, total_iterations):
+    if iteration == 0:
+        return "?"
+    else:
+        eta = (elapsed / iteration) * (total_iterations - iteration)
+        return str(np.round(eta, 2)) + "s"
+
+
+def custom_score(y_pred, y_true):
+    return fbeta_score(y_pred=y_pred,
+                       y_true=y_true,
+                       labels=[0, 1, 2, 3, 4],
+                       average="weighted",
+                       beta=1)

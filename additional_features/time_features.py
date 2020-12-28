@@ -1,10 +1,12 @@
+import sys
+sys.path.append('..')
 import numpy as np
 from helpers import *
 
 
-def _create_time_features(h5_file, overwrite=False, verbose=True):
+def _create_time_features(h5_file, n_chunks=None, overwrite=False, verbose=True):
     """
-    adds `pulse_max_freq` and `pulse_max_logE`
+    n_chunks not read, just to be consistent with other creation functions
     """
     time_features = ["sleep_time", "sleep_left", "sleep_time_relative"]
 

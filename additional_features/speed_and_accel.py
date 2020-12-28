@@ -1,10 +1,14 @@
+import sys
+sys.path.append('..')
 import numpy as np
 from helpers import *
 
-def _create_speed_and_acceleration(h5_file, overwrite=False, verbose=True):
+def _create_speed_and_acceleration(h5_file, n_chunks=10, overwrite=False, verbose=True):
     """
+    n_chunks useless, just to be consistent with other create function
     a[t] = (v[t] - v[t-1]) / dt 
     ===> v[t] = sum_{s=0}^{t} a[s] (+ v[-1] = 0)
+
     """
     freq = 10
     dt = 1 / freq

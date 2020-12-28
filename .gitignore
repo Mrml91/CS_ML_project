@@ -3,3 +3,5 @@ exploration_bis.ipynb
 pictures/**
 submissions/*
 .ipynb_checkpoints/*
+leaderboard.txt
+models_archives/*

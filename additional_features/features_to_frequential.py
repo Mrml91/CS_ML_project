@@ -1,3 +1,5 @@
+import sys
+sys.path.append('..')
 from scipy.fft import fft
 import numpy as np
 from helpers import *
