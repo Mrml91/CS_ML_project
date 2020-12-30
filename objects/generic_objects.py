@@ -5,6 +5,8 @@ sys.path.append("..")
 from helpers import *
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
+from joblib import dump, load
 
 
 # <input_maker>(h5_file, **params) --> X_<file>
@@ -196,4 +198,9 @@ class PoolModels:
                            })
         return results
 
+    def save(self, name):
+        archives_folder = "pool_archives"
+        os.makedirs(archives_folder, exist_ok=True)
+        fpath = os.path.join(archives_folder, f"{name}.joblib")
+        dump(self, fpath)
    

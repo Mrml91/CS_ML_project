@@ -37,8 +37,8 @@ def get_distribution_characteristics(arr, truncate_dist=False, moments=[1, 2, 3,
 def differentiate(signals, order, dropna=True):
     diff_signals = np.diff(signals, n=order, axis=1)
     if dropna:
-        diff_signals = diff_signals[order:, :]
-    return np.diff(signals, n=order, axis=1)
+        diff_signals = diff_signals[:, order:]
+    return diff_signals
 
 
 def _make_input_multidimensional_feature_chunk(
