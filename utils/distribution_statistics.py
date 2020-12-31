@@ -30,12 +30,14 @@ def get_distribution_characteristics(arr, truncate_dist=False):
 def differentiate(signals, order, dropna=True):
     diff_signals = np.diff(signals, n=order, axis=1)
     if dropna:
-        diff_signals = diff_signals[order:, :]
-    return np.diff(signals, n=order, axis=1)
+        diff_signals = diff_signals[:,order:]
+    return diff_signals
 
 
 def _make_input_multidimensional_feature_chunk(
-        sequences, quantiles=QUANTILES, dist_char=True, truncate_dist=False, order=0):
+        sequences, quantiles=QUANTILES, dist_char=True, truncate_dist=False, order=0, exp=False):
+    if exp:
+        sequences = np.exp(sequences)
     n_samples = sequences.shape[0]
     n_cols = len(quantiles) * int(len(quantiles) > 0) + 4 * int(dist_char)
     assert n_cols > 0
@@ -53,15 +55,21 @@ def make_input_multidimensional_feature(h5_file,
                                         dist_char=True,
                                         truncate_dist=False,
                                         n_chunks=100,
-                                        order=0):
+                                        order=0,
+                                        log_for_frequential=True):
     n_cols = len(quantiles) * int(len(quantiles) > 0) + 4 * int(dist_char)
     feature_array = np.empty(shape=(h5_file[feature].shape[0], n_cols))
     suffix = f"_diff_{order}" if order > 0 else ""
     columns = [(feature + suffix, str(q)) for q in quantiles] + [(feature, f"Mom_{i}") for i in [1, 2, 3, 4] if dist_char]
     
     for i, j in chunks_iterator(n_chunks, h5_file[feature].shape[0]):
-        feature_array[i:j, :] = _make_input_multidimensional_feature_chunk(
-            h5_file[feature][i:j], quantiles, dist_char, truncate_dist, order=order)
+        if log_for_frequential:
+            feature_array[i:j, :] = _make_input_multidimensional_feature_chunk(
+                h5_file[feature][i:j], quantiles, dist_char, truncate_dist, order=order,exp=False)
+        else :
+            if feature in SPECTRAL_FEATURES:
+                feature_array[i:j, :] = _make_input_multidimensional_feature_chunk(
+                    h5_file[feature][i:j], quantiles, dist_char, truncate_dist, order=order,exp=True)
         
     return feature_array, columns
 
@@ -73,7 +81,7 @@ from sklearn.preprocessing import StandardScaler
 
 def make_input(h5_file, features=FEATURES, quantiles=QUANTILES, 
                dist_char=True, truncate_dist=False, rescale=True,
-               time_features=TIME_FEATURES, orders=[0, 1, 2]):
+               time_features=TIME_FEATURES, orders=[0, 1, 2], log_for_frequential=True):
     n_mono = sum([feat in MONO_FEATURES for feat in features])
     n_time = sum([feat in TIME_FEATURES for feat in features])
     n_multi = len(features) - n_time - n_mono
@@ -93,12 +101,12 @@ def make_input(h5_file, features=FEATURES, quantiles=QUANTILES,
         elif feat in TIME_FEATURES:
             for order in orders:
                 input_arr[:, i:i+n_cols_multi], cols = make_input_multidimensional_feature(
-                    h5_file, feat, quantiles, dist_char, truncate_dist, order=order)
+                    h5_file, feat, quantiles, dist_char, truncate_dist, order=order, log_for_frequential=log_for_frequential)
                 columns = columns + cols
                 i += n_cols_multi
         else:
             input_arr[:, i:i+n_cols_multi], cols = make_input_multidimensional_feature(
-                h5_file, feat, quantiles, dist_char, truncate_dist)
+                h5_file, feat, quantiles, dist_char, truncate_dist, log_for_frequential=log_for_frequential)
             columns = columns + cols
             i += n_cols_multi
     if rescale:

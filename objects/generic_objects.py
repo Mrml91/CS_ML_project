@@ -127,8 +127,11 @@ class PoolModels:
         
         y_train_train, y_train_val = self.y_train_arr[train_selector], self.y_train_arr[val_selector]
         X_train_train, X_train_val = self.X_train[train_selector], self.X_train[val_selector]
+        
+        
         X_train_train = self.input_shaper.fit_transform(X_train_train)
         X_train_val = self.input_shaper.transform(X_train_val)
+        
         
         start_time = time.time()
         total = len(self.parameters_list) if models_ix is None else len(models_ix)
