@@ -55,7 +55,6 @@ class InputShaper:
         for i in range(len(self.operators)):
             self.operators[i].random_state = self.seed
         
-        
     def fit(self, X):
         for op in self.operators:
             X = op.fit_transform(X)
@@ -108,8 +107,8 @@ class PoolModels:
         self.models = np.zeros(shape=(len(self.parameters_list), self.n_splits), dtype='object')
         self.train_scores = np.zeros(shape=(len(self.parameters_list), self.n_splits), dtype=float)
         self.validation_scores = np.zeros(shape=(len(self.parameters_list), self.n_splits), dtype=float)
-        # self.has_converged = np.zeros(shape=(len(self.parameters_list), self.n_splits), dtype=bool)
         
+
     def make_train_input(self):
         if (self.X_train is not None):
             return
@@ -157,11 +156,6 @@ class PoolModels:
             #     self.has_converged[i, split_num] = True
             
             k += 1
-    
-    def train_on_all_data(self, model):
-        X_train_shaped = self.input_shaper.fit_transform(self.X_train)
-        model.fit(X_train_shaped,self.y_train_arr)
-        return model
 
     def _plot(self, scores):
         fig, ax = plt.subplots(figsize=(10, 10))
