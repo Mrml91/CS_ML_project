@@ -22,16 +22,16 @@ def get_distribution_quantiles_inv(arr, quantiles_inv):
 def get_distribution_interquantiles(arr, interquantiles):
     # interquantiles = [(0.1, 0.9), (0.2, 0.8), ...]
     inf_q, sup_q = [x[0] for x in interquantiles], [x[1] for x in interquantiles]
-    interquantiles = \
-        get_distribution_interquantiles(arr, sup_q) - get_distribution_interquantiles(arr, inf_q)
-    return interquantiles
+    interquantiles_vals = \
+        get_distribution_quantiles(arr, sup_q) - get_distribution_quantiles(arr, inf_q)
+    return interquantiles_vals
     
 def get_distribution_interquantiles_inv(arr, interquantiles_inv):
     # interquantiles_inv = [(0.1, 0.9), (0.2, 0.8), ...]
     inf_qinv, sup_qinv = [x[0] for x in interquantiles_inv], [x[1] for x in interquantiles_inv]
-    interquantiles_inv = \
+    interquantiles_inv_vals = \
         get_distribution_quantiles_inv(arr, sup_qinv) - get_distribution_quantiles_inv(arr, inf_qinv)
-    return interquantiles_inv
+    return interquantiles_inv_vals
 
 
 def get_distribution_moments(arr, moments=[]):
@@ -58,7 +58,7 @@ def _make_input_multidimensional_feature_chunk(
     pre_op applied before differentiation
     """
     n_samples = sequences.shape[0]
-    n_cols = len(quantiles) + len(quantiles_inv) + len(moments)
+    n_cols = len(quantiles) + len(quantiles_inv) + len(moments) + len(interquantiles) + len(interquantiles_inv)
     assert n_cols > 0
     res = np.empty(shape=(n_samples, n_cols))
     diff_sequences = differentiate(pre_op(sequences), order=diff_order, dropna=True)
@@ -93,7 +93,7 @@ def make_input_multidimensional_feature(
         diff_order=0, 
         pre_op=do_nothing, n_chunks=100):
 
-    n_cols = len(quantiles) + len(quantiles_inv) + len(moments) 
+    n_cols = len(quantiles) + len(quantiles_inv) + len(moments) + len(interquantiles) + len(interquantiles_inv)
     feature_array = np.empty(shape=(h5_file[feature].shape[0], n_cols))
     suffix = f"_diff_{diff_order}" if diff_order > 0 else ""
     columns = [(feature + suffix, f'qt_{q}') for q in quantiles] +\

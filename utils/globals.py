@@ -10,7 +10,7 @@ with h5py.File("kaggle_data/X_train.h5/X_train.h5", mode='a') as h5_train:
     FEATURES = list(set(h5_train.keys()) - set(IRRELEVANT_FEATURES))
 
 
-    TIME_FEATURES = ['accel_norm', 'eeg_1', 'eeg_2', 'eeg_3', 'eeg_4', 'eeg_5', 'eeg_6', 'eeg_7', 'pulse', 'speed_norm']
+    TIME_FEATURES = ['accel_norm', 'eeg_1', 'eeg_2', 'eeg_3', 'eeg_4', 'eeg_5', 'eeg_6', 'eeg_7', 'eeg_mean', 'pulse', 'speed_norm']
     SPECTRAL_FEATURES = [f"{time_feat}_ft_logmod" for time_feat in TIME_FEATURES]
     MONO_FEATURES = [feat for feat in FEATURES if h5_train[feat][0].shape[0] == 1]
 
