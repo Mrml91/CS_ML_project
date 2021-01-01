@@ -2,7 +2,9 @@ import sys
 sys.path.append('..')
 from scipy.fft import fft
 import numpy as np
+import re
 from helpers import *
+
 
 # SIGNAL PROCESSING
 
@@ -43,15 +45,13 @@ def get_spectrum_energy_chunk(sequences, sampling_freq):
     energy_by_band = energy_by_band.groupby(energy_by_band.columns, axis=1).sum()
     return energy_by_band
     
-    
 
-    
 
 def _create_log_energy(h5_file, n_chunks=10, overwrite=False, verbose=True):
     if (not overwrite) and ('alpha_eeg_1_logE' in h5_file.keys()):
         return None
     
-    eegs = [f'eeg_{i}' for i in range(1, 8)]
+    eegs = [feat for feat in h5_file.keys() if re.search("^eeg_(?:\d|(?:mean)){1}$", feat)]
     shape = (h5_file["eeg_1"].shape[0], 1)
     dtype = h5_file["eeg_1"].dtype
     

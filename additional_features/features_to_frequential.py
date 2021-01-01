@@ -25,6 +25,7 @@ FEATURES_TO_CONVERT = [
     'eeg_5',
     'eeg_6',
     'eeg_7',
+    'eeg_mean',
     'pulse',
     'speed_norm',
 ]
