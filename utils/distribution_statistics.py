@@ -109,7 +109,7 @@ def make_input_new(
                 diff_order=diff_order, pre_op=pre_op)
             columns = columns + cols
             i += n_cols
-    if rescale_by_id:
+    if rescale_by_subject:
         input_arr = rescale_by_id(input_arr, h5_file)          
     df = pd.DataFrame(input_arr, columns=pd.MultiIndex.from_tuples(columns))
     df = post_op(df)
