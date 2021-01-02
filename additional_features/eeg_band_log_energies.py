@@ -12,28 +12,6 @@ from helpers import *
 BANDS_FRONTIERS = [-1, 4, 8, 13, 22]
 BANDS_LABELS = ['delta', 'theta', 'alpha', 'beta']
 
-"""
-def get_spectrum(seq, fs):
-    ft_modulus = np.abs(fft(seq))
-    # The signal is real so the spectrum is symmetric 
-    if len(seq) % 2 == 0:
-        ft_modulus = ft_modulus[:len(seq) // 2]
-    else:
-        ft_modulus = ft_modulus[:len(seq) // 2 + 1]
-    freqs = np.arange(0, len(ft_modulus)) * fs / len(seq) # frequencies of the spectrum
-    return pd.Series(data=ft_modulus, index=freqs)
-
-
-def get_energy_by_band(seq, fs):
-    spectrum = get_spectrum(seq, fs)
-    bands = pd.cut(spectrum.index,
-                   bins=BANDS_FRONTIERS,
-                   labels=BANDS_LABELS
-                  )
-    energy = spectrum.pow(2).groupby(bands).sum() # energy proportional to this
-    # energy.clip(1e-10, None)
-    return energy
-"""
 
 def get_spectrum_energy_chunk(sequences, sampling_freq):
     fourier_transform = fft(sequences, axis=1)
@@ -51,7 +29,8 @@ def _create_log_energy(h5_file, n_chunks=10, overwrite=False, verbose=True):
     if (not overwrite) and ('alpha_eeg_1_logE' in h5_file.keys()):
         return None
     
-    eegs = [feat for feat in h5_file.keys() if re.search("^eeg_(?:\d|(?:mean)){1}$", feat)]
+    eegs = [feat for feat in h5_file.keys() 
+            if re.search("^eeg_\d$", feat)]
     shape = (h5_file["eeg_1"].shape[0], 1)
     dtype = h5_file["eeg_1"].dtype
     

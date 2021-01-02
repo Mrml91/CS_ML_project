@@ -5,7 +5,8 @@ from additional_features.features_to_frequential import _create_log_modulus
 from additional_features.pulse_to_freq import _create_pulse_max_log_energy_and_freq
 from additional_features.speed_and_accel import _create_speed_and_acceleration
 from additional_features.time_features import _create_time_features
-from additional_features.eeg_mean import _create_eeg_mean
+# from additional_features.eeg_mean import _create_eeg_mean
+from additional_features.eeg_band_signals import _create_band_signals
 
 
 
@@ -15,9 +16,12 @@ def make_all_features(h5_train, h5_test, overwrite=False, verbose=True, n_chunks
     # h5_train = h5py.File(train_file, mode='a')
     # h5_test = h5py.File(test_file, mode='a')
 
-    for create_func in [_create_eeg_mean, _create_log_energy, _create_log_modulus,
-                        _create_pulse_max_log_energy_and_freq,
-                        _create_speed_and_acceleration, _create_time_features]:
+    for create_func in [
+        # _create_eeg_mean,
+         _create_band_signals,
+         _create_log_energy, _create_log_modulus,
+         _create_pulse_max_log_energy_and_freq,
+         _create_speed_and_acceleration, _create_time_features]:
         print(create_func.__name__)
         for h5_file in [h5_train, h5_test]:
             create_func(h5_file, n_chunks=n_chunks, overwrite=overwrite, verbose=verbose)
