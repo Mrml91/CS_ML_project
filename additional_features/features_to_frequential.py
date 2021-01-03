@@ -31,6 +31,13 @@ FEATURES_TO_CONVERT = [
     'speed_norm',
 ]
 
+BAND_EEG = list()
+for greek in ['alpha', 'beta', 'delta', 'theta']:
+    for num in range(1, 8):
+        BAND_EEG.append(f"{greek}_eeg_{num}")
+
+FEATURES_TO_CONVERT = FEATURES_TO_CONVERT + BAND_EEG
+
 def _create_log_modulus(
     h5_file, n_chunks=10, *,
     features_to_convert=FEATURES_TO_CONVERT, overwrite=False, verbose=True):

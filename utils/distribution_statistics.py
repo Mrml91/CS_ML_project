@@ -40,11 +40,56 @@ def get_distribution_moments(arr, moments=[]):
         res[:, k] = np.mean(arr ** moments[k], axis=1, keepdims=False)
     return res
 
+def get_entropy(psd_signal): #https://dsp.stackexchange.com/questions/23689/what-is-spectral-entropy
+    normalized_psd = psd_signal / np.sum(psd_signal, axis=1, keepdims=True)
+    spectral_entropy = - np.sum(normalized_psd * np.log(normalized_psd), axis=1, keepdims=True)
+    return spectral_entropy
+
+def get_hjorth_parameters(signals):#https://en.wikipedia.org/wiki/Hjorth_parameters
+    # Activity | Mobility | Complexity
+    res = np.empty(shape=(signals.shape[0], 3))
+    v0, v1, v2 = [np.var(differentiate(signals, order, dropna=True), axis=1, keepdims=False)
+                    for order in [0, 1, 2]]
+    res[:, 0] = v0
+    res[:, 1] = np.sqrt(v1 / v0)
+    res[:, 2] = np.sqrt(v2 / v1) / res[:, 1]
+    return res
+
+
+# wavelength (lambda in the article) = 100 
+
+def get_mmd_elem(subsignals):
+    argmax_ = np.argmax(subsignals, axis=1)
+    argmin_ = np.argmin(subsignals, axis=1)
+    all_rows = list(range(subsignals.shape[0])) 
+    dy = subsignals[all_rows, argmax_] - subsignals[all_rows, argmin_] # zip-like numpy indexing
+    dx = (argmax_ - argmin_)
+    mmd =  np.sqrt(dx**2 + dy**2)
+    return mmd.reshape((mmd.shape[0], 1))
+
+def get_mmd(signals, wavelength=100): # minimum maximum distance
+    subsignals = np.split(signals, wavelength, axis=1) # not flex
+    mmd_elems = map(get_mmd_elem, subsignals)
+    mmd_total = sum(mmd_elems)
+    return mmd_total
+
+
+# TODO
+# def esis(signals, f_mid=???):
+    
+
 
 def differentiate(signals, order, dropna=True):
-    diff_signals = np.diff(signals, n=order, axis=1)
+    if order == 0:
+        return signals
+    if order < 0:
+        diff_signals = np.copy(signals)
+        for _ in range(-order):
+            diff_signals = np.cumsum(diff_signals, axis=1)
+    else:
+        diff_signals = np.diff(signals, n=order, axis=1)
     if dropna:
-        diff_signals = diff_signals[:, order:]
+        diff_signals = diff_signals[:, max(0, order):]
     return diff_signals
 
 
@@ -53,12 +98,18 @@ def _make_input_multidimensional_feature_chunk(
         quantiles=[], quantiles_inv=[],
         moments=[],
         interquantiles=[], interquantiles_inv=[],
+        entropy=False, hjorth=False, mmd=False,
         diff_order=0, pre_op=do_nothing):
     """
     pre_op applied before differentiation
     """
     n_samples = sequences.shape[0]
-    n_cols = len(quantiles) + len(quantiles_inv) + len(moments) + len(interquantiles) + len(interquantiles_inv)
+    n_cols =  len(quantiles) + len(quantiles_inv) \
+            + len(moments) \
+            + len(interquantiles) + len(interquantiles_inv) \
+            + int(entropy) \
+            + 3 * int(hjorth) \
+            + int(mmd)
     assert n_cols > 0
     res = np.empty(shape=(n_samples, n_cols))
     diff_sequences = differentiate(pre_op(sequences), order=diff_order, dropna=True)
@@ -66,22 +117,32 @@ def _make_input_multidimensional_feature_chunk(
     if len(quantiles) > 0:
         res[:, ix:ix+len(quantiles)] = get_distribution_quantiles(
             diff_sequences, quantiles)
-    ix += len(quantiles)
+        ix += len(quantiles)
     if len(quantiles_inv) > 0:
         res[:, ix:ix + len(quantiles_inv)] = get_distribution_quantiles_inv(
             diff_sequences, quantiles_inv)
-    ix += len(quantiles_inv)
+        ix += len(quantiles_inv)
     if len(moments) > 0:
         res[:, ix:ix+len(moments)] = get_distribution_moments(
             diff_sequences, moments)
-    ix += len(moments)
+        ix += len(moments)
     if len(interquantiles) > 0:
         res[:, ix:ix+len(interquantiles)] = get_distribution_interquantiles(
             diff_sequences, interquantiles)
-    ix += len(interquantiles)
+        ix += len(interquantiles)
     if len(interquantiles_inv) > 0:
         res[:, ix:ix+len(interquantiles_inv)] = get_distribution_interquantiles_inv(
             diff_sequences, interquantiles_inv)
+        ix += len(interquantiles_inv)
+    if entropy:
+        res[:, [ix]] = get_entropy(diff_sequences)
+        ix += 1
+    if hjorth:
+        res[:, ix:ix+3] = get_hjorth_parameters(diff_sequences)
+        ix += 3
+    if mmd:
+        res[:, [ix]] = get_mmd(diff_sequences)
+        ix += 1
     return res
         
 
@@ -90,17 +151,26 @@ def make_input_multidimensional_feature(
         quantiles=[], quantiles_inv=[],
         moments=[], 
         interquantiles=[], interquantiles_inv=[],
+        entropy=False, hjorth=False, mmd=False,
         diff_order=0, 
-        pre_op=do_nothing, n_chunks=100):
+        pre_op=do_nothing, n_chunks=10):
 
-    n_cols = len(quantiles) + len(quantiles_inv) + len(moments) + len(interquantiles) + len(interquantiles_inv)
+    n_cols =  len(quantiles) + len(quantiles_inv) \
+            + len(moments) \
+            + len(interquantiles) + len(interquantiles_inv) \
+            + int(entropy) \
+            + 3 * int(hjorth) \
+            + int(mmd)
     feature_array = np.empty(shape=(h5_file[feature].shape[0], n_cols))
-    suffix = f"_diff_{diff_order}" if diff_order > 0 else ""
+    suffix = f"_diff_{diff_order}" if diff_order != 0 else ""
     columns = [(feature + suffix, f'qt_{q}') for q in quantiles] +\
               [(feature + suffix, f'qt_inv_{q_inv}') for q_inv in quantiles_inv] +\
               [(feature + suffix, f"moment_{mom}") for mom in moments] +\
               [(feature + suffix, f'interqt_{inf_iq}-{sup_iq}') for inf_iq, sup_iq in interquantiles] +\
-              [(feature + suffix, f'interqt_inv_{inf_iq_inv}-{sup_iq_inv}') for inf_iq_inv, sup_iq_inv in interquantiles_inv]
+              [(feature + suffix, f'interqt_inv_{inf_iq_inv}-{sup_iq_inv}') for inf_iq_inv, sup_iq_inv in interquantiles_inv] +\
+              [(feature + suffix, 'entropy')] * int(entropy) +\
+              [(feature + suffix, f'Hjorth_{param}') for param in ("activity", "mobility", "complexity") if hjorth] +\
+              [(feature + suffix, 'mmd')] * int(mmd)
     
     for i, j in chunks_iterator(n_chunks, h5_file[feature].shape[0]):
         feature_array[i:j, :] = \
@@ -111,6 +181,7 @@ def make_input_multidimensional_feature(
                 moments=moments,
                 interquantiles=interquantiles,
                 interquantiles_inv=interquantiles_inv,
+                entropy=entropy, hjorth=hjorth, mmd=mmd,
                 diff_order=diff_order,
                 pre_op=pre_op)
         
@@ -132,11 +203,17 @@ def make_input_new(
     quantiles=[], quantiles_inv=[], 
     moments=[],
     interquantiles=[], interquantiles_inv=[],
+    entropy=False, hjorth=False, mmd=False,
     diff_orders=[0],
     rescale_by_subject=True,
     pre_op=do_nothing, post_op=do_nothing, pre_op_name="", post_op_name=""):
     
-    n_cols = len(quantiles) + len(quantiles_inv) + len(moments) + len(interquantiles) + len(interquantiles_inv)
+    n_cols =  len(quantiles) + len(quantiles_inv) \
+            + len(moments) + len(interquantiles) \
+            + len(interquantiles_inv) \
+            + int(entropy) \
+            + 3 * int(hjorth)\
+            + int(mmd)
     input_arr = np.empty(shape=(h5_file["index"].shape[0], n_cols * len(diff_orders) * len(features)))
     i = 0
     columns = list()
@@ -148,6 +225,7 @@ def make_input_new(
                 quantiles=quantiles, quantiles_inv=quantiles_inv,
                 moments=moments,
                 interquantiles=interquantiles, interquantiles_inv=interquantiles_inv,
+                entropy=entropy, hjorth=hjorth, mmd=mmd,
                 diff_order=diff_order, pre_op=pre_op)
             columns = columns + cols
             i += n_cols
