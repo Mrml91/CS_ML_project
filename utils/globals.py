@@ -14,7 +14,7 @@ with h5py.File("kaggle_data/X_train.h5/X_train.h5", mode='a') as h5_train:
     SPECTRAL_FEATURES = [f"{time_feat}_ft_logmod" for time_feat in TIME_FEATURES]
     MONO_FEATURES = [feat for feat in FEATURES if h5_train[feat][0].shape[0] == 1]
 
-    assert set(MONO_FEATURES).union(set(TIME_FEATURES)).union(set(SPECTRAL_FEATURES)) ==  set(FEATURES) 
+    #assert set(MONO_FEATURES).union(set(TIME_FEATURES)).union(set(SPECTRAL_FEATURES)) ==  set(FEATURES) 
 
     # Quantiles 
 
