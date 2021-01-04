@@ -1,7 +1,12 @@
-[lien du challenge kaggle](https://www.kaggle.com/c/dreem-2-sleep-classification-challenge-2020)
 
-Le dossier `kaggle_data` contient les données du challenge.
 
+Répertoire dans le cadre du cours de Machine Learning de 3ème année de CentraleSupélec.
+[lien du challenge](https://www.kaggle.com/c/dreem-2-sleep-classification-challenge-2020)
+
+Pour que le notebook soit fonctionnel, il faut mettre les données du challenge dans un dossier `kaggle_data` situé dans le même répertoire que le notebook.
+Les modèles finaux sont dans le notebook `final.ipynb`.
+
+<!-- 
 ### Questions en suspens:
 - prendre en compte le temps écoulé entre la première mesure et l'actuelle, dernière mesure et l'actuelle, et diviser par la longueur de la nuit (?)
 - traiter le pulse en fréquentiel
@@ -53,4 +58,4 @@ Lire l'article (en particulier pour détecter les features à ajouter)
 | - | MIN, 0.01, ODD_DECILES, 0.99, MAX | - | Yes | - | -1, 0, 1 | `interquantiles_inv = (0.1, 0.9), (0.3, 0.7) and quantiles_inv = 0.5 for logmod`| 1 | 0.74.. |
 | - | MIN, 0.01, ODD_DECILES, 0.99, MAX | - | Yes | - | -1, 0, 1 | `quantiles_inv = ODD_DECILES and interquantiles_inv = (0.1, 0.9), (0.3, 0.7) for logmod`| 1 | 0.753 |
 | - | MIN, 0.01, ODD_DECILES, 0.99, MAX | - | Yes | - | -1, 0, 1 | `quantiles_inv = ODD_DECILES and interquantiles_inv = (0.1, 0.9), (0.3, 0.7) for logmod, interquantiles = (0.1, 0.9), (0.3, 0.7) for time features`| 1 | 0.754 (Alex) - 0.742 (Mrml) |
-| - | MIN, 0.01, ODD_DECILES, 0.99, MAX | - | Yes | - | -1, 0, 1 | `quantiles_inv = ODD_DECILES and interquantiles_inv = (0.1, 0.9), (0.3, 0.7) for logmod, interquantiles = (0.1, 0.9), (0.3, 0.7) for time features;  n_estimators = 300`| 1 | 0.756 (Alex)|
+| - | MIN, 0.01, ODD_DECILES, 0.99, MAX | - | Yes | - | -1, 0, 1 | `quantiles_inv = ODD_DECILES and interquantiles_inv = (0.1, 0.9), (0.3, 0.7) for logmod, interquantiles = (0.1, 0.9), (0.3, 0.7) for time features;  n_estimators = 300`| 1 | 0.756 (Alex)| -->
