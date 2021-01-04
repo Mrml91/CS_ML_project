@@ -45,6 +45,11 @@ def get_entropy(psd_signal): #https://dsp.stackexchange.com/questions/23689/what
     spectral_entropy = - np.sum(normalized_psd * np.log(normalized_psd), axis=1, keepdims=True)
     return spectral_entropy
 
+def get_renyi_entropy(psd_signal):
+    normalized_psd = psd_signal / np.sum(psd_signal, axis=1, keepdims=True)
+    spectral_entropy = - np.log(np.sum(normalized_psd ** 2, axis=1, keepdims=True))
+    return spectral_entropy
+
 def get_hjorth_parameters(signals):#https://en.wikipedia.org/wiki/Hjorth_parameters
     # Activity | Mobility | Complexity
     res = np.empty(shape=(signals.shape[0], 3))
@@ -98,7 +103,7 @@ def _make_input_multidimensional_feature_chunk(
         quantiles=[], quantiles_inv=[],
         moments=[],
         interquantiles=[], interquantiles_inv=[],
-        entropy=False, hjorth=False, mmd=False,
+        entropy=False, renyi_entropy=False, hjorth=False, mmd=False,
         diff_order=0, pre_op=do_nothing):
     """
     pre_op applied before differentiation
@@ -108,6 +113,7 @@ def _make_input_multidimensional_feature_chunk(
             + len(moments) \
             + len(interquantiles) + len(interquantiles_inv) \
             + int(entropy) \
+            + int(renyi_entropy) \
             + 3 * int(hjorth) \
             + int(mmd)
     assert n_cols > 0
@@ -137,6 +143,9 @@ def _make_input_multidimensional_feature_chunk(
     if entropy:
         res[:, [ix]] = get_entropy(diff_sequences)
         ix += 1
+    if renyi_entropy:
+        res[:, [ix]] = get_renyi_entropy(diff_sequences)
+        ix += 1
     if hjorth:
         res[:, ix:ix+3] = get_hjorth_parameters(diff_sequences)
         ix += 3
@@ -151,7 +160,7 @@ def make_input_multidimensional_feature(
         quantiles=[], quantiles_inv=[],
         moments=[], 
         interquantiles=[], interquantiles_inv=[],
-        entropy=False, hjorth=False, mmd=False,
+        entropy=False, renyi_entropy=False, hjorth=False, mmd=False,
         diff_order=0, 
         pre_op=do_nothing, n_chunks=10):
 
@@ -159,6 +168,7 @@ def make_input_multidimensional_feature(
             + len(moments) \
             + len(interquantiles) + len(interquantiles_inv) \
             + int(entropy) \
+            + int(renyi_entropy) \
             + 3 * int(hjorth) \
             + int(mmd)
     feature_array = np.empty(shape=(h5_file[feature].shape[0], n_cols))
@@ -169,6 +179,7 @@ def make_input_multidimensional_feature(
               [(feature + suffix, f'interqt_{inf_iq}-{sup_iq}') for inf_iq, sup_iq in interquantiles] +\
               [(feature + suffix, f'interqt_inv_{inf_iq_inv}-{sup_iq_inv}') for inf_iq_inv, sup_iq_inv in interquantiles_inv] +\
               [(feature + suffix, 'entropy')] * int(entropy) +\
+              [(feature + suffix, 'renyi_entropy')] * int(renyi_entropy) +\
               [(feature + suffix, f'Hjorth_{param}') for param in ("activity", "mobility", "complexity") if hjorth] +\
               [(feature + suffix, 'mmd')] * int(mmd)
     
@@ -181,7 +192,7 @@ def make_input_multidimensional_feature(
                 moments=moments,
                 interquantiles=interquantiles,
                 interquantiles_inv=interquantiles_inv,
-                entropy=entropy, hjorth=hjorth, mmd=mmd,
+                entropy=entropy, renyi_entropy=renyi_entropy, hjorth=hjorth, mmd=mmd,
                 diff_order=diff_order,
                 pre_op=pre_op)
         
@@ -203,7 +214,7 @@ def make_input_new(
     quantiles=[], quantiles_inv=[], 
     moments=[],
     interquantiles=[], interquantiles_inv=[],
-    entropy=False, hjorth=False, mmd=False,
+    entropy=False, renyi_entropy=False, hjorth=False, mmd=False,
     diff_orders=[0],
     rescale_by_subject=True,
     pre_op=do_nothing, post_op=do_nothing, pre_op_name="", post_op_name=""):
@@ -212,6 +223,7 @@ def make_input_new(
             + len(moments) + len(interquantiles) \
             + len(interquantiles_inv) \
             + int(entropy) \
+            + int(renyi_entropy) \
             + 3 * int(hjorth)\
             + int(mmd)
     input_arr = np.empty(shape=(h5_file["index"].shape[0], n_cols * len(diff_orders) * len(features)))
@@ -225,7 +237,7 @@ def make_input_new(
                 quantiles=quantiles, quantiles_inv=quantiles_inv,
                 moments=moments,
                 interquantiles=interquantiles, interquantiles_inv=interquantiles_inv,
-                entropy=entropy, hjorth=hjorth, mmd=mmd,
+                entropy=entropy, renyi_entropy=renyi_entropy, hjorth=hjorth, mmd=mmd,
                 diff_order=diff_order, pre_op=pre_op)
             columns = columns + cols
             i += n_cols
