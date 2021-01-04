@@ -6,75 +6,14 @@ from utils.distribution_statistics import make_input_new
 from final_models.features_groups import *
 from final_models.windows import concat_windows
 
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier
 
-def make_input_best_rf(h5_file):
-    
-    dfs = list()
-    
-    dfs.append( # df_bandlog
-        make_input_new(
-            h5_file,
-            features=BAND_LOG_ENERGY_FEATURES_OLD,
-            rescale_by_subject=False,
-            moments=[1],
-        )
-    )
-        
-    dfs.append( # df_sleep = 
-        make_input_new(
-            h5_file,
-            features=SLEEP_FEATURES[:2],
-            rescale_by_subject=False,
-            moments=[1]
-        )
-    )
-        
-    dfs.append( # df_logmod = 
-        make_input_new(
-            h5_file,
-            features=LOGMOD_FEATURES_OLD,
-            rescale_by_subject=False,
-            #interquantiles=[(0.2, 0.8)],
-            quantiles_inv=[0.1, 0.3, 0.5, 0.7, 0.9],
-            diff_orders=[0],
-            interquantiles_inv=[(0.1, 0.9), (0.45, 0.55)],
-        )
-    )
-    
- 
-    dfs.append( # df_time_diff_0 = 
-        make_input_new(
-            h5_file,
-            features=sorted(set(TIME_FEATURES_OLD) - {"speed_norm"}),
-            rescale_by_subject=False,
-            # moments=[1, 2],
-            quantiles=[1e-4, 0.01, 0.1, 0.3, 0.5, 0.7, 0.9, 0.99, 1-1e-4],
-            interquantiles=[(0.1, 0.9), (0.45, 0.55)],
-            diff_orders=[0]
-        )
-    )
-    
-    
-    res_df = pd.concat(dfs, axis=1, keys=[str(i) for i in range(len(dfs))])
-    
-    # Filling policy
-    missing_values = res_df.isna().sum(axis=0)
-    missing_values = missing_values.loc[missing_values > 0]
-    if len(missing_values) > 0:
-        print("Missing values :")
-        print(missing_values)
-        print("Filling missing values with zero")
-        res_df = res_df.fillna(0)
-        
-    return res_df
+from final_models.best_rf import make_input_best_rf
 
-
-
-class BestRF:
+class ClassicET:
 
     def __init__(self, h5_train, h5_test, y_train_arr, train_ids):
-        self.model = RandomForestClassifier(verbose=1, random_state=1, n_estimators=100, n_jobs=-2)
+        self.model = ExtraTreesClassifier(verbose=1, random_state=1, n_estimators=100, n_jobs=-2)
         self.shifts = [-1, 0, 1]
         self.h5_train = h5_train
         self.h5_test = h5_test
