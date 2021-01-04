@@ -18,7 +18,7 @@ def vote(models, policy, weights=None, kind='test'):
         y = np.zeros(n_rows)
         for i in range(n_rows):
             y[i] = np.argmax(np.bincount(Y[i,:], weights=weights))
-        return y
+        return y.astype(int)
 
     else:
         Y = np.zeros([n_rows, len(models), 5], dtype=float)
@@ -28,6 +28,6 @@ def vote(models, policy, weights=None, kind='test'):
         y = np.zeros(n_rows, dtype=float)
         for i in range(n_rows):
             y[i] = np.argmax(Y_proba[i, :])
-        return y
+        return y.astype(int)
 
 
